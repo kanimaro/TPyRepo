@@ -8,6 +8,7 @@ import socket
 import threading
 import requests
 import select
+import pack_dir.setting
 
 from time import sleep
 from email.mime.text import MIMEText
@@ -20,21 +21,6 @@ import base64
 import random
 from Crypto.Cipher import AES
 import hashlib
-
-SUCCESS = 0
-FAILURE = -1
-
-FROM_ADDR = 'yff43868@nifty.com'
-MY_PASS = '949t49w9'
-TO_ADDR = 'tinydancer39g2@icloud.com'
-SUBJECT = 'TEST MAIL'
-BODY = 'FUCK'
-
-#ソケットの情報
-HOST = '127.0.0.1'
-PORT = 50007
-BACKLOG = 5
-BUFSIZE = 1024
 
 #ロガーの設定
 logger = getLogger(__name__)
