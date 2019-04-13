@@ -114,20 +114,23 @@ def RemoveConnection(conn, addr, clients):
     clients.remove((conn,addr))
     
 
-def Handler(conn, addr, server_sock, clients):
+def client_handler(conn, addr, cli_port):
     while True:
       try:
         msg = conn.recv(BUFSIZE)
         if not msg:
-          RemoveConnection(conn,addr, clients)
+        #  RemoveConnection(conn,addr, clients)
           break
         else:
-          logger.debug(msg)
-          for client in clients:
-            client[0].sendto(msg, client[1])
+          logger.debug('Received: {0} from {1} : {2}'.format(msg.decode(), addr, cli_port))
+          conn.send(msg)
+          conn.close()
+
       except ConnectionResetError:
-        RemoveConnection(conn,addr, clients)
+       # RemoveConnection(conn,addr, clients)
+        conn.close
         break
+
 
         
 
@@ -166,12 +169,13 @@ if __name__ == '__main__':
       t1.join()
    # under here, socket progtamming
     
-    clients = []
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     readfds = set([server_sock])
     try:
       server_sock.bind((HOST, PORT))
       server_sock.listen(BACKLOG)
+      clients = []
+
       
       while True:
         timeout = 15
@@ -183,15 +187,15 @@ if __name__ == '__main__':
         for sock in rready:
           if sock is server_sock:
             try:
-              (conn,  addr) = server_sock.accept()
+              conn,  (addr, cli_port) = server_sock.accept()
               readfds.add(conn)
-              logger.debug('Connected by', addr)
+              logger.debug('Connected by new client:{0}:{1}'.format(addr, cli_port))
             except KeyboardInterrupt:
               server_sock.close()
               break;
 
-            clients.append((conn,addr))
-            thread = threading.Thread(target=Handler, args=(conn, addr, server_sock, clients), daemon=True)
+      #      clients.append((conn,addr))
+            thread = threading.Thread(target=client_handler, args=(conn, addr, cli_port), daemon=True)
             thread.start()
             thread.join()
             break;
@@ -206,5 +210,5 @@ if __name__ == '__main__':
               sock.send(msg)
     finally:
       for sock in readfds:
-        sock.close()
+         sock.close()
 
